@@ -7,7 +7,7 @@ if not os.path.exists('settings.json'):
     settings.setup()
 
 # define the extension module
-pennapprobot = Extension('pennapprobot', sources=['pennapprobot.c'])
+pennapprobot = Extension('pennapprobot', sources=['pennapprobot.c'], libraries=['bcm2835'], library_dirs=['/usr/local/lib'])
 
 # run the setup
 setup(ext_modules=[pennapprobot])
