@@ -1,0 +1,10 @@
+# intelliJ
+.idea
+
+# ignore specific user settings
+settings.json
+
+# python build stuff
+__pycache__
+build
+*.so
