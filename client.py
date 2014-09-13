@@ -32,7 +32,7 @@ s = socket.socket(socket.AF_INET)
 ssl_sock = context.wrap_socket(s)
 
 print("Connecting to: {0}:{1}".format(args.ip, args.port))
-ssl_sock.connect((socket.gethostname(), args.port))
+ssl_sock.connect((args.ip, args.port))
 
 #pprint("peer name: {0}".format(ssl_sock.getpeername()))
 #pprint("peer cert: {0}".format(ssl_sock.getpeercert()))
