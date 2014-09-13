@@ -1,6 +1,11 @@
 #! /usr/bin/python3
+
+## Sample client.
+## 
+
 import socket, ssl
 import json
+import argparse
 #from pprint import pprint
 
 # get settings
@@ -10,6 +15,11 @@ try:
     json_data.close()
 except IOError:
     raise IOError("settings.json not found. Please run setup-stuff.py")
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-i", "--ip", type=str, help="IP address or hostname of the server you want to connect to.", default=socket.gethostname())
+parser.add_argument("-p", "--port", type=int, help="Port you want to connect to.", default=int(settings['port']))
+args = parser.parse_args()
 
 encoding = 'UTF-8'
 
@@ -21,7 +31,8 @@ s = socket.socket(socket.AF_INET)
 # require a certificate
 ssl_sock = context.wrap_socket(s)
 
-ssl_sock.connect((socket.gethostname(), settings['port']))
+print("Connecting to: {0}:{1}".format(args.ip, args.port))
+ssl_sock.connect((socket.gethostname(), args.port))
 
 #pprint("peer name: {0}".format(ssl_sock.getpeername()))
 #pprint("peer cert: {0}".format(ssl_sock.getpeercert()))
