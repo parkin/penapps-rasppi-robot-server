@@ -6,52 +6,67 @@
 #include <pthread.h>
 #include <stdlib.h>
 
+// PIN1 is right side
 #define PIN1 RPI_GPIO_P1_11
+// PIN2 is left side
 #define PIN2 RPI_GPIO_P1_12
+
+// Signal time
+static const int DELAY = 5000;
+static const int DELAY_BACK = 537;
+static const int DELAY_FORWARD = 4436;
+static const int DELAY_BETWEEN = 3899;
 
 /*  wrapped cosine function */
 static PyObject* turn_left(PyObject* self, PyObject* args)
 {
-                bcm2835_gpio_write(PIN2,LOW);
-                bcm2835_gpio_write(PIN1,HIGH);
-                bcm2835_delayMicroseconds(563);
-                bcm2835_gpio_write(PIN2,LOW);
-                bcm2835_gpio_write(PIN1,LOW);
-                bcm2835_delayMicroseconds(4437);
-                printf("turning left\n");
-	        return Py_BuildValue("d", 0);
+	// To turn left, PIN1 ->forward, PIN2 ->forward
+	bcm2835_gpio_write(PIN2,HIGH);
+	bcm2835_gpio_write(PIN1,HIGH);
+
+	bcm2835_delayMicroseconds(DELAY_BACK);
+
+	bcm2835_gpio_write(PIN2,LOW);
+	bcm2835_gpio_write(PIN1,LOW);
+	
+	bcm2835_delayMicroseconds(DELAY_FORWARD);
+
+	printf("turning left\n");
+	return Py_BuildValue("d", 0);
 }
 static PyObject* turn_right(PyObject* self, PyObject* args)
-{              
-                bcm2835_gpio_write(PIN1,LOW);
+{             //to turn right PIN1->backwards, PIN2-> forward 
+                bcm2835_gpio_write(PIN1,HIGH);
                 bcm2835_gpio_write(PIN2,HIGH);
-                bcm2835_delayMicroseconds(4437);
+                bcm2835_delayMicroseconds(DELAY_FORWARD);
                 bcm2835_gpio_write(PIN1,LOW);
                 bcm2835_gpio_write(PIN2,LOW);
-                bcm2835_delayMicroseconds(563);
+                bcm2835_delayMicroseconds(DELAY_BACK);
                 printf("turning right\n");
                 return Py_BuildValue("d", 0);
 }
-static PyObject* move_forward(PyObject* self, PyObject* args)
+static PyObject* move_backward(PyObject* self, PyObject* args)
 {              
-                bcm2835_gpio_write(PIN1,HIGH);
-                bcm2835_gpio_write(PIN2,LOW);
-                bcm2835_delayMicroseconds(563);
                 bcm2835_gpio_write(PIN2,HIGH);
+                bcm2835_gpio_write(PIN1,HIGH);
+                bcm2835_delayMicroseconds(DELAY_BACK);
+                bcm2835_gpio_write(PIN2,LOW);
+                bcm2835_delayMicroseconds(DELAY_BETWEEN);
                 bcm2835_gpio_write(PIN1,LOW);
-                bcm2835_delayMicroseconds(4437);
-                printf("moving Forward\n");
+                bcm2835_delayMicroseconds(DELAY_FORWARD);
+                printf("moving backward\n");
                 return Py_BuildValue("d", 0);
 }
-static PyObject* move_backward(PyObject* self, PyObject* args)
+static PyObject* move_forward(PyObject* self, PyObject* args)
 {  
                 bcm2835_gpio_write(PIN2,HIGH);
-                bcm2835_gpio_write(PIN1,LOW);
-                bcm2835_delayMicroseconds(563);
                 bcm2835_gpio_write(PIN1,HIGH);
+                bcm2835_delayMicroseconds(DELAY_BACK);
+                bcm2835_gpio_write(PIN1,LOW);
+                bcm2835_delayMicroseconds(DELAY_BETWEEN);
                 bcm2835_gpio_write(PIN2,LOW);
-                bcm2835_delayMicroseconds(4437);
-                printf("moving backward\n");
+                bcm2835_delayMicroseconds(DELAY_BACK);
+                printf("moving forward\n");
                 return Py_BuildValue("d", 0);
 }
 
