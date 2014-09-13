@@ -25,13 +25,24 @@ def deal_with_client(connstream):
         data = connstream.read()
     # finished with client
 
+print("Starting server.")
+
+########
+# Get the raspberry pi's external ip address
+# This hack is the only way
+dummy_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+dummy_socket.connect(('8.8.8.8', 80))
+host = dummy_socket.getsockname()[0]
+dummy_socket.close()
+
 context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
 context.load_cert_chain(certfile=settings['certfile'], keyfile=settings['keyfile'])
 
 bindsocket = socket.socket()
-bindsocket.bind((socket.gethostname(), settings['port']))
+bindsocket.bind((host, settings['port']))
 bindsocket.listen(5)
 
+print("Socket listening on: {0}:{1}\n".format(host, settings['port']))
 while True:
     newsocket, fromaddr = bindsocket.accept()
     connstream = context.wrap_socket(newsocket, server_side=True)
