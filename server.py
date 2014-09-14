@@ -1,6 +1,11 @@
-#! /usr/bin/python3
-import socket, ssl
+#! /usr/bin/python
+import socket
+import argparse
 import json
+try:
+    import SocketServer
+except ImportError:
+    import socketserver as SocketServer
 
 try:
     json_data=open('settings.json')
@@ -10,44 +15,28 @@ except IOError:
     print("Please run setup-stuff.py")
     exit(1)
 
-def do_something(connstream, data):
-    print("connstream: {0}. \tdata: {1}.".format(connstream, data))
-    return True
+# get the arguments
+parser = argparse.ArgumentParser()
+parser.add_argument("-i", "--ip", type=str, help="IP address or hostname of the server you want to connect to. Default is the device's current external ip.", default="")
+parser.add_argument("-p", "--port", type=int, help="Port you want to connect to. Default is in settings.json.", default=int(settings['port']))
+args = parser.parse_args()
 
-def deal_with_client(connstream):
-    data = connstream.read()
-    # null data means the client is finished with us
-    while data:
-        if not do_something(connstream, data):
-             # we'll assume do_something returns False
-             # when we're finished with client
-             break
-        data = connstream.read()
-    # finished with client
+class MyTCPHandler(SocketServer.BaseRequestHandler):
+    def handle(self):
+        self.data = self.request.recv(1024).strip()
+        print("{0} wrote {1}.".format(self.client_address[0], self.data))
+        # TODO handle data
 
-print("Starting server.")
+# hack to the the pi's external ip
+if args.ip is None or len(args.ip) < 1:
+    dummy_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    dummy_socket.connect(('8.8.8.8', 80))
+    host = dummy_socket.getsockname()[0]
+    dummy_socket.close()
+else:
+    host = args.ip
 
-########
-# Get the raspberry pi's external ip address
-# This hack is the only way
-dummy_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-dummy_socket.connect(('8.8.8.8', 80))
-host = dummy_socket.getsockname()[0]
-dummy_socket.close()
+server = SocketServer.TCPServer((host, settings['port']), MyTCPHandler)
 
-context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
-context.load_cert_chain(certfile=settings['certfile'], keyfile=settings['keyfile'])
-
-bindsocket = socket.socket()
-bindsocket.bind((host, settings['port']))
-bindsocket.listen(5)
-
-print("Socket listening on: {0}:{1}\n".format(host, settings['port']))
-while True:
-    newsocket, fromaddr = bindsocket.accept()
-    connstream = context.wrap_socket(newsocket, server_side=True)
-    try:
-        deal_with_client(connstream)
-    finally:
-        connstream.shutdown(socket.SHUT_RDWR)
-        connstream.close()
+print("TCPServer listening at {0}:{1}".format(host, settings['port']))
+server.serve_forever()

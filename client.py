@@ -3,7 +3,7 @@
 ## Sample client.
 ## 
 
-import socket, ssl
+import socket
 import json
 import argparse
 #from pprint import pprint
@@ -21,25 +21,18 @@ parser.add_argument("-i", "--ip", type=str, help="IP address or hostname of the 
 parser.add_argument("-p", "--port", type=int, help="Port you want to connect to.", default=int(settings['port']))
 args = parser.parse_args()
 
-encoding = 'UTF-8'
-
-context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
-context.verify_mode = ssl.CERT_REQUIRED
-context.load_verify_locations("pennapps-certificates.crt")
-
-s = socket.socket(socket.AF_INET)
-# require a certificate
-ssl_sock = context.wrap_socket(s)
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 print("Connecting to: {0}:{1}".format(args.ip, args.port))
-ssl_sock.connect((args.ip, args.port))
 
-#pprint("peer name: {0}".format(ssl_sock.getpeername()))
-#pprint("peer cert: {0}".format(ssl_sock.getpeercert()))
+encoding = 'UTF-8'
 
-for i in range(2):
-    msg = "hello! {0}".format(i)
-    print("sending: {0}.".format(msg))
-    ssl_sock.send(bytes(msg, encoding))
+try:
+    sock.connect((args.ip, args.port))
 
-ssl_sock.close()
+    for i in range(2):
+        msg = "hello! {0}".format(i)
+        print("sending: {0}.".format(msg))
+        sock.sendall(bytes(msg, encoding))
+finally:
+    sock.close()
